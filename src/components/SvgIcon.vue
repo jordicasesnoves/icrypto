@@ -1,8 +1,9 @@
 <template>
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    :width="width"
-    :height="height"
+    width="1em"
+    height="1em"
+    style="font-size: 1.5rem;"
     viewBox="0 0 24 24"
     :aria-labelledby="iconName"
     role="presentation"
