@@ -39,4 +39,16 @@ body{
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.transition-normal{
+  transition: all 0.3s;
+}
+
+.transition-fast{
+  transition: all 0.1s;
+}
+
+.transition-slow{
+  transition: all 1s;
+}
 </style>
