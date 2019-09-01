@@ -16,7 +16,7 @@
         <div class="lg:flex lg:flex-col w-32 lg:justify-between xs:my-6 lg:my-0">
           <div class="text-2xl">Coins</div>
           <div class="xs:mt-4 lg:mt-0 relative h-12" v-if="!loading">
-            <div v-for="(crypto,index) in crpytosFollowing" :key="crypto.id">
+            <div v-for="(crypto,index) in cryptosFollowing" :key="crypto.id">
               <img
                 :style="{ left: 30 * index + 'px', zIndex: -index + 100 }"
                 class="w-12 absolute border-4 border-gray-100 rounded-full inline align-middle"
@@ -71,7 +71,7 @@
       <!-- Following Graph's Section -->
       <div v-if="!loading" class="mt-16 block lg:flex rounded-lg bg-white shadow">
         <div
-          v-for="(crypto,name,index) of crpytosFollowing"
+          v-for="(crypto,name,index) of cryptosFollowing"
           v-bind:key="crypto.id"
           class="lg:flex-1 p-6"
         >
@@ -108,9 +108,10 @@
                 type="line"
                 height="224px"
                 :options="chartOptions"
-                :series="series"
+                :series="crypto.historicalHourly"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -131,38 +132,43 @@ import apexchart from "vue-apexcharts";
 export default {
   data() {
     return {
-      crpytosFollowing: [
+      selectedCurrency: "USD",
+      cryptosFollowing: [
         {
           id: 1,
           name: "Bitcoin",
           symbol: "BTC",
-          infoData: null
+          infoData: null,
+          historicalHourly: null
         },
         {
           id: 2,
           name: "Ethereum",
           symbol: "ETH",
-          infoData: null
+          infoData: null,
+          historicalHourly: null
         },
         {
           id: 3,
           name: "Ripple",
           symbol: "XRP",
-          infoData: null
+          infoData: null,
+          historicalHourly: null
         },
         {
           id: 4,
           name: "Litecoin",
           symbol: "LTC",
-          infoData: null
+          infoData: null,
+          historicalHourly: null
         }
       ],
       loading: false,
       series: [
         {
-          name: "series1",
-          data: [32, 10, 5, 14]
-        }
+          name: 'btc',
+          data: [32.20, 10, 5, 14]
+        },
       ],
       chartOptions: {
         colors: ["#F7931A", "#FDEAD3"],
@@ -181,9 +187,29 @@ export default {
           type: "datetime",
           categories: [
             "2018-09-19T00:00:00",
-            "2018-09-20T00:00:00",
-            "2018-09-21T00:00:00",
-            "2018-09-22T00:00:00"
+            "2018-09-19T01:00:00",
+            "2018-09-19T02:00:00",
+            "2018-09-19T03:00:00",
+            "2018-09-19T04:00:00",
+            "2018-09-19T05:00:00",
+            "2018-09-19T06:00:00",
+            "2018-09-19T07:00:00",
+            "2018-09-19T08:00:00",
+            "2018-09-19T09:00:00",
+            "2018-09-19T10:00:00",
+            "2018-09-19T11:00:00",
+            "2018-09-19T12:00:00",
+            "2018-09-19T13:00:00",
+            "2018-09-19T14:00:00",
+            "2018-09-19T15:00:00",
+            "2018-09-19T16:00:00",
+            "2018-09-19T17:00:00",
+            "2018-09-19T18:00:00",
+            "2018-09-19T19:00:00",
+            "2018-09-19T20:00:00",
+            "2018-09-19T21:00:00",
+            "2018-09-19T22:00:00",
+            "2018-09-19T23:00:00",
           ],
           labels: {
             show: false
@@ -205,7 +231,7 @@ export default {
         },
         stroke: {
           width: 3,
-          curve: "smooth"
+          //curve: "smooth"
         },
         fill: {
           colors: ["#F7931A", "#FDEAD3"],
@@ -230,9 +256,8 @@ export default {
 
     // -> Desired format: let cryptoString = 'BTC,XRP,ETH'
     let cryptosStrig = "";
-    this.crpytosFollowing.forEach((crypto, index, array) => {
-
-      // Check to don't add comma at the last crypto symbol 
+    this.cryptosFollowing.forEach((crypto, index, array) => {
+      // Check to don't add comma at the last crypto symbol
       if (index === array.length - 1) {
         cryptosStrig = cryptosStrig + crypto.symbol;
       } else {
@@ -240,7 +265,7 @@ export default {
       }
     });
     this.loading = true;
-    const cryptosCurrentValues = await axios
+    const cryptosData = await axios
       .get("https://min-api.cryptocompare.com/data/pricemultifull", {
         params: {
           fsyms: cryptosStrig,
@@ -249,17 +274,53 @@ export default {
       })
       .then(res => {
         if (res.status === 200) {
-          this.crpytosFollowing.forEach(crypto => {
+          this.cryptosFollowing.forEach(crypto => {
             crypto.infoData = res.data.RAW[crypto.symbol];
           });
-          setTimeout(() => {
-            this.loading = false;
-          }, 2000);
+          console.log('data done')
         }
       })
       .catch(err => {
         console.log(err);
       });
+    let promises = [];
+    for (let i = 0; i < this.cryptosFollowing.length; i++) {
+      promises.push(
+        await axios.get("https://min-api.cryptocompare.com/data/histohour", {
+          params: {
+            fsym: this.cryptosFollowing[i].symbol,
+            tsym: this.selectedCurrency,
+            limit: 23
+          }
+        })
+      );
+    }
+    // [3232,3232,32323,3232,3]
+
+    // {
+    //  name: '',
+    //  data: [3232,3232,32323,3232,3]
+    // }
+    Promise.all(promises).then(res => {
+      res.forEach((val, index) => {
+        let crpytoSelected = val.config.params.fsym;
+        this.cryptosFollowing[index].historicalHourly = val.data.Data.map(dot => {
+            return dot.close;
+          }
+        );
+        this.cryptosFollowing[index].historicalHourly = [
+          {
+            name: this.cryptosFollowing[index].name,
+            data: this.cryptosFollowing[index].historicalHourly
+          }
+        ]
+        console.log(this.cryptosFollowing[index].historicalHourly)
+        
+        
+      });
+      this.loading = false;
+      console.log('hourly done')
+    });
   },
   computed: {
     styleObject(index) {
