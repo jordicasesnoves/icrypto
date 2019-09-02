@@ -71,9 +71,9 @@
       <!-- Following Graph's Section -->
       <div v-if="!loading" class="my-16 block lg:flex">
         <a
-          v-for="(crypto,name,index) of cryptosFollowing"
+          v-for="(crypto,index) in cryptosFollowing"
           v-bind:key="crypto.id"
-          class="cursor-pointer transition-normal chart-card lg:flex-1 mr-6 xs:mb-6 rounded-lg shadow-lg bg-white"
+          :class="{'ml-6': index !== 0, 'cursor-pointer':true, 'transition-normal':true, 'chart-card':true, 'lg:flex-1':true, 'xs:mb-6':true, 'rounded-lg':true, 'shadow-lg':true, 'bg-white':true}"
           href="#"
         >
           <div class="p-6">
@@ -158,7 +158,8 @@ export default {
           symbol: "XRP",
           infoData: null,
           historicalHourly: null
-        }
+        },
+        
       ],
       loading: false,
       series: [
