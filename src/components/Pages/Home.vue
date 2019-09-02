@@ -69,7 +69,7 @@
       </div>
 
       <!-- Following Graph's Section -->
-      <div v-if="!loading" class="mt-16 block lg:flex rounded-lg bg-white shadow">
+      <div v-if="!loading" class="my-16 block lg:flex rounded-lg bg-white shadow">
         <div
           v-for="(crypto,name,index) of cryptosFollowing"
           v-bind:key="crypto.id"
@@ -133,6 +133,7 @@ export default {
   data() {
     return {
       selectedCurrency: "USD",
+      hourlyStamps: null,
       cryptosFollowing: [
         {
           id: 1,
@@ -155,13 +156,6 @@ export default {
           infoData: null,
           historicalHourly: null
         },
-        {
-          id: 4,
-          name: "Litecoin",
-          symbol: "LTC",
-          infoData: null,
-          historicalHourly: null
-        }
       ],
       loading: false,
       series: [
@@ -171,7 +165,7 @@ export default {
         },
       ],
       chartOptions: {
-        colors: ["#F7931A", "#FDEAD3"],
+        
         chart: {
           toolbar: {
             show: false
@@ -183,36 +177,16 @@ export default {
         dataLabels: {
           enabled: false
         },
+        tooltip: {
+          x: {
+            format: 'dd MMM HH:mm'
+          }
+        },
         xaxis: {
           type: "datetime",
-          categories: [
-            "2018-09-19T00:00:00",
-            "2018-09-19T01:00:00",
-            "2018-09-19T02:00:00",
-            "2018-09-19T03:00:00",
-            "2018-09-19T04:00:00",
-            "2018-09-19T05:00:00",
-            "2018-09-19T06:00:00",
-            "2018-09-19T07:00:00",
-            "2018-09-19T08:00:00",
-            "2018-09-19T09:00:00",
-            "2018-09-19T10:00:00",
-            "2018-09-19T11:00:00",
-            "2018-09-19T12:00:00",
-            "2018-09-19T13:00:00",
-            "2018-09-19T14:00:00",
-            "2018-09-19T15:00:00",
-            "2018-09-19T16:00:00",
-            "2018-09-19T17:00:00",
-            "2018-09-19T18:00:00",
-            "2018-09-19T19:00:00",
-            "2018-09-19T20:00:00",
-            "2018-09-19T21:00:00",
-            "2018-09-19T22:00:00",
-            "2018-09-19T23:00:00",
-          ],
+          categories: [],
           labels: {
-            show: false
+            show: false,
           },
           tooltip: {
             enabled: false
@@ -233,10 +207,7 @@ export default {
           width: 3,
           //curve: "smooth"
         },
-        fill: {
-          colors: ["#F7931A", "#FDEAD3"],
-          type: "gradient"
-        }
+        
       }
     };
   },
@@ -302,8 +273,15 @@ export default {
     //  data: [3232,3232,32323,3232,3]
     // }
     Promise.all(promises).then(res => {
-      res.forEach((val, index) => {
-        let crpytoSelected = val.config.params.fsym;
+      this.hourlyStamps = res[0].data.Data.map((dot => {
+        let date = new Date(dot.time*1000)
+        let isoString = date.toISOString()
+
+        // Desired format -> "2018-09-19T14:00:00"
+        return isoString
+      }))
+      this.chartOptions.xaxis.categories = this.hourlyStamps
+      res.forEach((val, index) => {        
         this.cryptosFollowing[index].historicalHourly = val.data.Data.map(dot => {
             return dot.close;
           }
@@ -314,9 +292,6 @@ export default {
             data: this.cryptosFollowing[index].historicalHourly
           }
         ]
-        console.log(this.cryptosFollowing[index].historicalHourly)
-        
-        
       });
       this.loading = false;
       console.log('hourly done')

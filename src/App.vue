@@ -1,7 +1,7 @@
 <template>
-  <div id="app" class="flex">
+  <div id="app">
     <AppDrawer />
-    <router-view class="lg:ml-64 md:ml-0" />
+    <router-view />
   </div>
 </template>
 
