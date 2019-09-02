@@ -69,51 +69,54 @@
       </div>
 
       <!-- Following Graph's Section -->
-      <div v-if="!loading" class="my-16 block lg:flex rounded-lg bg-white shadow">
-        <div
+      <div v-if="!loading" class="my-16 block lg:flex">
+        <a
           v-for="(crypto,name,index) of cryptosFollowing"
           v-bind:key="crypto.id"
-          class="lg:flex-1 p-6"
+          class="cursor-pointer transition-normal chart-card lg:flex-1 mr-6 xs:mb-6 rounded-lg shadow-lg bg-white"
+          href="#"
         >
-          <div class="flex justify-between flex-row">
-            <div class="self-center">
-              <img
-                class="w-6 mr-2 left-0 inline align-middle"
-                :src="`https://www.cryptocompare.com${crypto.infoData.USD.IMAGEURL}`"
-                alt
-              />
-              <span class="text-xl text-black align-middle">{{ crypto.name }}</span>
-              <!--<span class="px-4 tracking-widest align-middle">{{ crypto.symbol}}</span>-->
+          <div class="p-6">
+            <div class="flex justify-between flex-row">
+              <div class="self-center">
+                <img
+                  class="w-6 mr-2 left-0 inline align-middle"
+                  :src="`https://www.cryptocompare.com${crypto.infoData.USD.IMAGEURL}`"
+                  alt
+                />
+                <span class="text-xl text-black align-middle">{{ crypto.name }}</span>
+                <!--<span class="px-4 tracking-widest align-middle">{{ crypto.symbol}}</span>-->
+              </div>
+              <div class="self-center">
+                <span class="pl-4 text-sm inline tracking-widest self-center">24h</span>
+              </div>
             </div>
-            <div class="self-center">
-              <span class="pl-4 text-sm inline tracking-widest self-center">24h</span>
-            </div>
-          </div>
-          <div class="flex mt-1 justify-between flex-row">
-            <div
-              v-show="!loading"
-              class="inline text-2xl text-black font-medium align-middle"
-            >$ {{ crypto.infoData.USD.PRICE }}</div>
-            <!-- {inline: true, 'font-medium': true, 'self-center': true}, -->
-            <div
-              v-show="!loading"
-              :class="[Math.sign(crypto.infoData.USD.CHANGEPCT24HOUR) == -1 ? 'text-red-600' : 'text-green-600',
+            <div class="flex mt-1 justify-between flex-row">
+              <div
+                v-show="!loading"
+                class="inline text-2xl text-black font-medium align-middle"
+              >$ {{ crypto.infoData.USD.PRICE }}</div>
+              <!-- {inline: true, 'font-medium': true, 'self-center': true}, -->
+              <div
+                v-show="!loading"
+                :class="[Math.sign(crypto.infoData.USD.CHANGEPCT24HOUR) == -1 ? 'text-red-600' : 'text-green-600',
               {'font-medium': true, 'inline': true, 'self-center': true}]"
-            >{{ crypto.infoData.USD.CHANGEPCT24HOUR.toFixed(2) }}%</div>
+              >{{ crypto.infoData.USD.CHANGEPCT24HOUR.toFixed(2) }}%</div>
+            </div>
           </div>
-          <div class="h-56 flex flex-row">
-            <div id="chart" class="flex-1">
+          <div class="flex flex-row">
+            <div class="w-full">
               <apexchart
                 v-if="!loading"
-                type="line"
-                height="224px"
+                type="area"
+                height="150px"
+                width="100%"
                 :options="chartOptions"
                 :series="crypto.historicalHourly"
               />
             </div>
-            
           </div>
-        </div>
+        </a>
       </div>
       <div v-else class="mt-16 text-center block lg:flex rounded-lg bg-white shadow lg:h-64">
         <div class="p-6 text-center m-auto">
@@ -155,18 +158,20 @@ export default {
           symbol: "XRP",
           infoData: null,
           historicalHourly: null
-        },
+        }
       ],
       loading: false,
       series: [
         {
-          name: 'btc',
-          data: [32.20, 10, 5, 14]
-        },
+          name: "btc",
+          data: [32.2, 10, 5, 14]
+        }
       ],
       chartOptions: {
-        
         chart: {
+          sparkline: {
+            enabled: true
+          },
           toolbar: {
             show: false
           }
@@ -179,35 +184,51 @@ export default {
         },
         tooltip: {
           x: {
-            format: 'dd MMM HH:mm'
+            format: "dd MMM HH:mm"
           }
         },
         xaxis: {
+          show: false,
           type: "datetime",
           categories: [],
           labels: {
-            show: false,
+            show: false
           },
           tooltip: {
             enabled: false
           },
           axisBorder: {
             show: false
+          },
+          axisTicks: {
+            show: false
           }
         },
         yaxis: {
+          show: false,
           labels: {
+            show: true
+          },
+          axisBorder: {
+            show: false
+          },
+          axisTicks: {
             show: false
           }
         },
         grid: {
-          show: false
+          show: false,
+          padding: {
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 0
+          }
         },
         stroke: {
           width: 3,
-          //curve: "smooth"
-        },
-        
+          curve: "smooth"
+        }
       }
     };
   },
@@ -248,7 +269,7 @@ export default {
           this.cryptosFollowing.forEach(crypto => {
             crypto.infoData = res.data.RAW[crypto.symbol];
           });
-          console.log('data done')
+          console.log("data done");
         }
       })
       .catch(err => {
@@ -273,16 +294,17 @@ export default {
     //  data: [3232,3232,32323,3232,3]
     // }
     Promise.all(promises).then(res => {
-      this.hourlyStamps = res[0].data.Data.map((dot => {
-        let date = new Date(dot.time*1000)
-        let isoString = date.toISOString()
+      this.hourlyStamps = res[0].data.Data.map(dot => {
+        let date = new Date(dot.time * 1000);
+        let isoString = date.toISOString();
 
         // Desired format -> "2018-09-19T14:00:00"
-        return isoString
-      }))
-      this.chartOptions.xaxis.categories = this.hourlyStamps
-      res.forEach((val, index) => {        
-        this.cryptosFollowing[index].historicalHourly = val.data.Data.map(dot => {
+        return isoString;
+      });
+      this.chartOptions.xaxis.categories = this.hourlyStamps;
+      res.forEach((val, index) => {
+        this.cryptosFollowing[index].historicalHourly = val.data.Data.map(
+          dot => {
             return dot.close;
           }
         );
@@ -291,10 +313,10 @@ export default {
             name: this.cryptosFollowing[index].name,
             data: this.cryptosFollowing[index].historicalHourly
           }
-        ]
+        ];
       });
       this.loading = false;
-      console.log('hourly done')
+      console.log("hourly done");
     });
   },
   computed: {
@@ -309,4 +331,7 @@ export default {
 </script>
 
 <style>
+.chart-card:hover {
+  transform: scale(1.05);
+}
 </style>
