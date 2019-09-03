@@ -17,10 +17,11 @@
           <div class="text-2xl">Coins</div>
           <div class="xs:mt-4 lg:mt-0 relative h-12" v-if="!loading">
             <div v-for="(crypto,index) in cryptosFollowing" :key="crypto.id">
-              <cryptoicon 
-              :symbol="crypto.symbol" 
-              class="w-12 h-12 absolute border-4 border-gray-100 rounded-full inline align-middle" 
-              :style="{ left: 34 * index + 'px', zIndex: -index + 100 }"
+              <cryptoicon
+                :symbol="crypto.symbol"
+                ref="icons"
+                class="w-12 h-12 absolute border-4 border-gray-100 rounded-full inline align-middle"
+                :style="{ left: 34 * index + 'px', zIndex: -index + 100 }"
               />
             </div>
           </div>
@@ -78,12 +79,11 @@
           <div class="p-6">
             <div class="flex justify-between flex-row">
               <div class="self-center">
-                <cryptoicon 
-              :symbol="crypto.symbol" 
-              class="cryptoimg w-6 mr-2 left-0 inline align-middle"
-              
-              />
-               
+                <cryptoicon
+                  :symbol="crypto.symbol"
+                  class="cryptoimg w-6 mr-2 left-0 inline align-middle"
+                />
+
                 <span class="text-xl text-black align-middle">{{ crypto.name }}</span>
                 <!--<span class="px-4 tracking-widest align-middle">{{ crypto.symbol}}</span>-->
               </div>
@@ -107,11 +107,11 @@
           <div class="flex flex-row">
             <div class="w-full">
               <apexchart
-                v-if="!loading"
+                v-if="!loadingGraphs"
                 type="area"
                 height="150px"
                 width="100%"
-                :options="chartOptions"
+                :options="crypto.chartOptions"
                 :series="crypto.historicalHourly"
               />
             </div>
@@ -131,7 +131,8 @@
 import SvgIcon from "../SvgIcon";
 import axios from "axios";
 import apexchart from "vue-apexcharts";
-import FastAverageColor from 'fast-average-color';
+import FastAverageColor from "fast-average-color";
+import ColorThief from "colorthief/dist/color-thief.mjs";
 
 export default {
   data() {
@@ -144,93 +145,34 @@ export default {
           name: "Bitcoin",
           symbol: "BTC",
           infoData: null,
-          historicalHourly: null
+          historicalHourly: null,
+          chartOptions: null
         },
         {
           id: 2,
           name: "Ethereum",
           symbol: "ETH",
           infoData: null,
-          historicalHourly: null
+          historicalHourly: null,
+          chartOptions: null
         },
         {
           id: 3,
-          name: "Ripple",
-          symbol: "XRP",
+          name: "Litecoin",
+          symbol: "LTC",
           infoData: null,
-          historicalHourly: null
+          historicalHourly: null,
+          chartOptions: null
         }
       ],
       loading: false,
+      loadingGraphs: true,
       series: [
         {
           name: "btc",
           data: [32.2, 10, 5, 14]
         }
-      ],
-      chartOptions: {
-        chart: {
-          sparkline: {
-            enabled: true
-          },
-          toolbar: {
-            show: false
-          }
-        },
-        legend: {
-          show: false
-        },
-        dataLabels: {
-          enabled: false
-        },
-        tooltip: {
-          x: {
-            format: "dd MMM HH:mm"
-          }
-        },
-        xaxis: {
-          show: false,
-          type: "datetime",
-          categories: [],
-          labels: {
-            show: false
-          },
-          tooltip: {
-            enabled: false
-          },
-          axisBorder: {
-            show: false
-          },
-          axisTicks: {
-            show: false
-          }
-        },
-        yaxis: {
-          show: false,
-          labels: {
-            show: true
-          },
-          axisBorder: {
-            show: false
-          },
-          axisTicks: {
-            show: false
-          }
-        },
-        grid: {
-          show: false,
-          padding: {
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: 0
-          }
-        },
-        stroke: {
-          width: 3,
-          curve: "smooth"
-        }
-      }
+      ]
     };
   },
   components: {
@@ -244,7 +186,6 @@ export default {
   async created() {
     console.log("created");
 
-    
     let today = new Date();
     let today_year_ago = null;
     let dd = String(today.getDate()).padStart(2, "0");
@@ -280,6 +221,71 @@ export default {
         if (res.status === 200) {
           this.cryptosFollowing.forEach(crypto => {
             crypto.infoData = res.data.RAW[crypto.symbol];
+            crypto.chartOptions = {
+              colors: ["#F7931A"],
+              chart: {
+                sparkline: {
+                  enabled: true
+                },
+                toolbar: {
+                  show: false
+                }
+              },
+              legend: {
+                show: false
+              },
+              dataLabels: {
+                enabled: false
+              },
+              tooltip: {
+                x: {
+                  format: "dd MMM HH:mm"
+                }
+              },
+              xaxis: {
+                show: false,
+                type: "datetime",
+                categories: [],
+                labels: {
+                  show: false
+                },
+                tooltip: {
+                  enabled: false
+                },
+                axisBorder: {
+                  show: false
+                },
+                axisTicks: {
+                  show: false
+                }
+              },
+              yaxis: {
+                show: false,
+                labels: {
+                  show: true
+                },
+                axisBorder: {
+                  show: false
+                },
+                axisTicks: {
+                  show: false
+                }
+              },
+              grid: {
+                show: false,
+                padding: {
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  bottom: 0
+                }
+              },
+              stroke: {
+                width: 3,
+                curve: "smooth"
+              }
+            };
+
           });
         }
       })
@@ -314,7 +320,13 @@ export default {
         // Desired format -> "2018-09-19T14:00:00" -> ISO format
         return isoDate;
       });
-      this.chartOptions.xaxis.categories = this.hourlyStamps;
+
+      this.cryptosFollowing.forEach((crypto) => {
+        crypto.chartOptions.xaxis.categories = this.hourlyStamps;
+      })
+
+      
+
       res.forEach((val, index) => {
         this.cryptosFollowing[index].historicalHourly = val.data.Data.map(
           dot => {
@@ -329,6 +341,8 @@ export default {
         ];
       });
       this.loading = false;
+      
+      
     });
   },
   beforeMount() {
@@ -337,22 +351,31 @@ export default {
   mounted() {
     console.log("mounted");
 
+    this.loadingGraphs = true;
+
+    this.$watch('loading', () => {
+      this.setGraphColors()
+      this.loadingGraphs = false;
+    })
   },
   beforeUpdate() {
     console.log("beforeUpdate");
   },
   updated() {
     console.log("updated");
-     
-    
   },
 
   computed: {
-    styleObject(index) {
-      let obj = {
-        left: 36 * index + "px"
-      };
-      return obj;
+  },
+
+  methods: {
+    setGraphColors(){
+      this.$refs.icons.forEach((icon, index) => {
+        // Get the crypto main color, which is used in the circle fill from the coins svg icons
+        let color = icon.$el.lastElementChild.childNodes["0"].attributes[3].nodeValue
+        // Set the graph color
+        this.cryptosFollowing[index].chartOptions.colors = [`${color}`]
+      })
     }
   }
 };
