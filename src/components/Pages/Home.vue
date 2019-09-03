@@ -17,11 +17,10 @@
           <div class="text-2xl">Coins</div>
           <div class="xs:mt-4 lg:mt-0 relative h-12" v-if="!loading">
             <div v-for="(crypto,index) in cryptosFollowing" :key="crypto.id">
-              <img
-                :style="{ left: 30 * index + 'px', zIndex: -index + 100 }"
-                class="w-12 absolute border-4 border-gray-100 rounded-full inline align-middle"
-                :src="`https://www.cryptocompare.com${crypto.infoData.USD.IMAGEURL}`"
-                alt
+              <cryptoicon 
+              :symbol="crypto.symbol" 
+              class="w-12 h-12 absolute border-4 border-gray-100 rounded-full inline align-middle" 
+              :style="{ left: 34 * index + 'px', zIndex: -index + 100 }"
               />
             </div>
           </div>
@@ -79,11 +78,12 @@
           <div class="p-6">
             <div class="flex justify-between flex-row">
               <div class="self-center">
-                <img
-                  class="w-6 mr-2 left-0 inline align-middle"
-                  :src="`https://www.cryptocompare.com${crypto.infoData.USD.IMAGEURL}`"
-                  alt
-                />
+                <cryptoicon 
+              :symbol="crypto.symbol" 
+              class="cryptoimg w-6 mr-2 left-0 inline align-middle"
+              
+              />
+               
                 <span class="text-xl text-black align-middle">{{ crypto.name }}</span>
                 <!--<span class="px-4 tracking-widest align-middle">{{ crypto.symbol}}</span>-->
               </div>
@@ -131,6 +131,7 @@
 import SvgIcon from "../SvgIcon";
 import axios from "axios";
 import apexchart from "vue-apexcharts";
+import FastAverageColor from 'fast-average-color';
 
 export default {
   data() {
@@ -158,8 +159,7 @@ export default {
           symbol: "XRP",
           infoData: null,
           historicalHourly: null
-        },
-        
+        }
       ],
       loading: false,
       series: [
@@ -237,7 +237,14 @@ export default {
     SvgIcon,
     apexchart
   },
+
+  beforeCreate() {
+    console.log("beforeCreate");
+  },
   async created() {
+    console.log("created");
+
+    
     let today = new Date();
     let today_year_ago = null;
     let dd = String(today.getDate()).padStart(2, "0");
@@ -257,7 +264,11 @@ export default {
         cryptosStrig = cryptosStrig + crypto.symbol + ",";
       }
     });
+
+    // Beginning of API calls
     this.loading = true;
+
+    // 1st API call -> Get Cryptos Data
     const cryptosData = await axios
       .get("https://min-api.cryptocompare.com/data/pricemultifull", {
         params: {
@@ -270,12 +281,13 @@ export default {
           this.cryptosFollowing.forEach(crypto => {
             crypto.infoData = res.data.RAW[crypto.symbol];
           });
-          console.log("data done");
         }
       })
       .catch(err => {
         console.log(err);
       });
+
+    // 2nd API call -> Group of calls depending on the number of cryptosFollowing
     let promises = [];
     for (let i = 0; i < this.cryptosFollowing.length; i++) {
       promises.push(
@@ -297,10 +309,10 @@ export default {
     Promise.all(promises).then(res => {
       this.hourlyStamps = res[0].data.Data.map(dot => {
         let date = new Date(dot.time * 1000);
-        let isoString = date.toISOString();
+        let isoDate = date.toISOString();
 
-        // Desired format -> "2018-09-19T14:00:00"
-        return isoString;
+        // Desired format -> "2018-09-19T14:00:00" -> ISO format
+        return isoDate;
       });
       this.chartOptions.xaxis.categories = this.hourlyStamps;
       res.forEach((val, index) => {
@@ -317,9 +329,24 @@ export default {
         ];
       });
       this.loading = false;
-      console.log("hourly done");
     });
   },
+  beforeMount() {
+    console.log("beforeMount");
+  },
+  mounted() {
+    console.log("mounted");
+
+  },
+  beforeUpdate() {
+    console.log("beforeUpdate");
+  },
+  updated() {
+    console.log("updated");
+     
+    
+  },
+
   computed: {
     styleObject(index) {
       let obj = {

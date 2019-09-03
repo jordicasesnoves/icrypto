@@ -5,6 +5,12 @@ import App from './App';
 import router from './router';
 import './assets/css/tailwind.css';
 
+import Cryptoicon from 'vue-cryptoicon';
+import icons from 'vue-cryptoicon/src/icons';
+
+Cryptoicon.add(icons);
+Vue.use(Cryptoicon);
+
 Vue.config.productionTip = false;
 
 /* eslint-disable no-new */
