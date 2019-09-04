@@ -63,7 +63,12 @@
       <div v-if="!loading" class="my-16">
         <div class="flex justify-between">
           <div class="inline text-black text-xl font-medium">Following</div>
-          <div class="inline self-center">View all -></div>
+          <Button icon iconPos="right" textButton size="small">
+            <template v-slot:iconPath>
+              <path class="heroicon-ui" d="M9.3 8.7a1 1 0 0 1 1.4-1.4l4 4a1 1 0 0 1 0 1.4l-4 4a1 1 0 0 1-1.4-1.4l3.29-3.3-3.3-3.3z"/>
+            </template>
+            View All
+          </Button>
         </div>
         <div class="mt-4 block lg:flex">
           <a
@@ -375,7 +380,7 @@ export default {
 </script>
 
 <style>
-.chart-card:hover {
+/*.chart-card:hover {
   transform: scale(1.05);
-}
+}*/ 
 </style>
