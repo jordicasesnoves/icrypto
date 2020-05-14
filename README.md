@@ -1,6 +1,6 @@
 # iCrypto
 
-> Visualize the 24hr top crypto's charts in real time with real data. Currently using the crypto compare API.
+Visualize the 24hr top crypto's charts in real time with real data. Currently using the crypto compare API.
 
 ``` bash
 # install dependencies
